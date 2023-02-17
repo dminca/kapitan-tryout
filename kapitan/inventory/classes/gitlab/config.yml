@@ -1,18 +1,20 @@
 parameters:
+  domain: in.example.com
   charts:
     gitlab:
       name: gitlab
       namespace: gitlab-server
       version: 6.8.0
       chart_path: charts/gitlab/${charts:gitlab:version}
-      helm_values: 
+      instance_name: ${fqdn}
+      helm_values:
         upgradeCheck:
           enabled: true
         global:
           hosts:
             domain: ${fqdn}
             gitlab:
-              name: ${fqdn}
+              name: ${charts:gitlab:instance_name}
           ingress:
             tls:
               enabled: true

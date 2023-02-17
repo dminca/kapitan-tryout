@@ -3,4 +3,4 @@ classes:
   - gitlab.helm
 
 parameters:
-  fqdn: gitlab.in.example.com
+  fqdn: gitlab.${domain}

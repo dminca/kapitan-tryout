@@ -3,11 +3,7 @@ classes:
   - gitlab.helm
 
 parameters:
-  fqdn: stg.example.com
+  fqdn: stg.${domain}
   charts:
     gitlab:
-      helm_values:
-        global:
-          hosts:
-            gitlab:
-              name: gitlab.${fqdn}
+      instance_name: gitlab.${fqdn}
