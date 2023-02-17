@@ -3,3 +3,9 @@ parameters:
   kapitan:
     vars:
       target: ${target_name}
+    compile:
+      - output_path: .
+        input_type: jinja2
+        input_paths: ${docs}
+  docs:
+    - templates/docs/README.md
