@@ -1,8 +1,14 @@
 classes:
   - common
   - gitlab.helm
-  - gitlab.staging
 
 parameters:
-  target_name: ${_reclass_:name:short}
   fqdn: stg.example.com
+  charts:
+    gitlab:
+      helm_values:
+        global:
+          hosts:
+            domain: ${fqdn}
+            gitlab:
+              name: gitlab.${fqdn}

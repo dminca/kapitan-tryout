@@ -9,6 +9,10 @@ parameters:
         upgradeCheck:
           enabled: true
         global:
+          hosts:
+            domain: ${fqdn}
+            gitlab:
+              name: ${fqdn}
           ingress:
             tls:
               enabled: true
@@ -25,6 +29,7 @@ parameters:
             enabled: true
           pages:
             enabled: true
+            host: pages.${fqdn}
             artifactsServer: true
             objectStore:
               enabled: true

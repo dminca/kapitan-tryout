@@ -1,8 +1,6 @@
 classes:
   - common
   - gitlab.helm
-  - gitlab.production
 
 parameters:
-  target_name: ${_reclass_:name:short}
   fqdn: gitlab.in.example.com
