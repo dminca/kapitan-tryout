@@ -1,6 +1,0 @@
-parameters:
-  kapitan:
-    vars:
-      target: ${target_name}
-  namespace: gitlab-server
-  name: gitlab

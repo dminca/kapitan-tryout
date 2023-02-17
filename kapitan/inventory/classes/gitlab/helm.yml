@@ -1,0 +1,20 @@
+classes:
+  - .config
+
+parameters:
+  kapitan:
+    dependencies:
+      - type: helm
+        output_path: ${charts:gitlab:chart_path}
+        source: https://charts.gitlab.io
+        version: ${charts:gitlab:version}
+        chart_name: ${charts:gitlab:name}
+    compile:
+      - input_type: helm
+        output_path: ${charts:gitlab:name}
+        input_paths:
+          - ${charts:gitlab:chart_path}
+        helm_values: ${charts:gitlab:helm_values}
+        helm_params:
+          namespace: ${charts:gitlab:namespace}
+          name: ${charts:gitlab:name}
