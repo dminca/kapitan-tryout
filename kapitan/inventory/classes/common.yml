@@ -1,0 +1,8 @@
+parameters:
+  kapitan:
+    dependencies:
+      - type: helm
+        output_path: charts/gitlab
+        source: https://charts.gitlab.io
+        version: 6.8.0
+        chart_name: gitlab

@@ -1,0 +1,288 @@
+classes:
+  - common
+  - gitlab.shared
+
+parameters:
+  target_name: stg
+  kapitan:
+    compile:
+      - input_type: helm
+        output_path: ${name}
+        input_paths:
+          - charts/gitlab
+        helm_params:
+          namespace: ${namespace}
+          name: ${name}
+        helm_values:
+          upgradeCheck:
+            enabled: true
+
+          global:
+            hosts:
+              domain: stg.example.com
+              gitlab:
+                name: gitlab.stg.example.com
+            ingress:
+              tls:
+                enabled: true
+              configureCertmanager: false
+              class: internal-nginx
+              annotations:
+                cert-manager.io/cluster-issuer: production-issuer
+            minio:
+              enabled: false
+            rails:
+              bootsnap:
+                enabled: false
+            kas:
+              enabled: true
+            pages:
+              enabled: true
+              host: pages.stg.example.com
+              artifactsServer: true
+              objectStore:
+                enabled: true
+                bucket: gitlab-pages
+                # proxy_download: true
+                connection:
+                  secret: gitlab-rails-storage
+            psql:
+              password:
+                useSecret: true
+                secret: gitlab-postgresql-password
+              key: postgresql-password
+              host: pg-pgpool.gitlab-postgres.svc
+              port: 5432
+              username: postgres
+              database: gitlabhq_production
+            redis:
+              password:
+                enabled: false
+              host: mymaster
+              port: 6379
+              sentinels:
+                - host: redis.gitlab-redis.svc
+                  port: 26379
+
+            appConfig:
+              # https://docs.gitlab.com/charts/charts/globals#omniauth
+              omniauth:
+                enabled: true
+                # allowSingleSignOn: ['azure_activedirectory_v2', 'openid_connect']
+                allowSingleSignOn: ['openid_connect']
+                blockAutoCreatedUsers: false
+                autoLinkUser: ['openid_connect']
+                externalProviders: []
+                providers:
+                - secret: gitlab-openid-connect
+                  key: provider
+                # - secret: gitlab-azure-oauth2
+                #   key: provider
+              # https://docs.gitlab.com/ee/administration/object_storage.html#connection-settings
+              initialDefaults:
+                signupEnabled: false
+              object_store:
+                enabled: true
+                proxy_download: true
+                connection:
+                  secret: gitlab-rails-storage
+              lfs:
+                enabled: true
+                proxy_download: false
+                bucket: git-lfs
+                connection: {}
+              artifacts:
+                enabled: true
+                proxy_download: true
+                bucket: gitlab-artifacts
+                connection: {}
+              uploads:
+                enabled: true
+                proxy_download: true
+                bucket: gitlab-uploads
+                connection: {}
+              packages:
+                enabled: true
+                proxy_download: true
+                bucket: gitlab-packages
+                connection: {}
+              externalDiffs:
+                enabled: true
+                proxy_download: true
+                bucket: gitlab-mr-diffs
+                connection: {}
+              terraformState:
+                enabled: true
+                bucket: gitlab-terraform-state
+                connection: {}
+              ciSecureFiles:
+                enabled: true
+                bucket: gitlab-ci-secure-files
+                connection: {}
+              dependencyProxy:
+                enabled: true
+                proxy_download: true
+                bucket: gitlab-dependency-proxy
+                connection: {}
+              backups:
+                bucket: gitlab-backups
+                tmpBucket: tmp
+                connection: {}
+            ## https://docs.gitlab.com/charts/charts/globals#configure-registry-settings
+            registry:
+              bucket: registry
+
+          prometheus:
+            install: false
+
+          gitlab-runner:
+            install: true
+            serviceAccountName: gitlab-gitlab-runner
+            rbac:
+              create: false
+            runners:
+              cache:
+                secretName: gitlab-minio-secret
+              config: |
+                [[runners]]
+                  [runners.kubernetes]
+                    image = "registry-proxy.example.com/ubuntu:22.04"
+                    pull_policy = "if-not-present"
+                    allowed_pull_policies = ["if-not-present", "always"]
+                    memory_limit_overwrite_max_allowed = "32Gi"
+                    cpu_requests = "400m"
+                    memory_requests = "128Mi"
+                    memory_limit = "8Gi"
+                  [runners.cache]
+                    Type = "s3"
+                    Shared = true
+                    [runners.cache.s3]
+                      ServerAddress = "minio.gitlab-object-storage.svc.cluster.local:9000"
+                      BucketName = "runner-cache"
+                      Insecure = true
+              tags: dp,k8s,gitlab
+              runUntagged: true
+
+          nginx-ingress:
+            enabled: false
+
+          redis:
+            install: false
+
+          postgresql:
+            install: false
+
+          gitlab:
+            migrations:
+              enabled: true
+            webservice:
+              extraEnv:
+                GITLAB_LOG_LEVEL: debug
+                http_proxy: http://my-proxy.example.com:3210
+                https_proxy: http://my-proxy.example.com:3210
+                HTTPS_PROXY: http://my-proxy.example.com:3210
+                HTTP_PROXY: http://my-proxy.example.com:3210
+                no_proxy: ".example.com,localhost,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc.cluster.local"
+                NO_PROXY: ".example.com,localhost,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc.cluster.local"
+              monitoring:
+                exporter:
+                  enabled: true
+              ingress:
+                tls:
+                  secretName: gitlab-wildcard-tls
+              minReplicas: 1
+              resources:
+                limits:
+                  memory: 4G
+                requests:
+                  cpu: 1000m
+                  memory: 1G
+              workhorse:
+                resources:
+                  limits:
+                    memory: 100M
+                  requests:
+                    memory: 10M
+          # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/charts/gitlab/charts/webservice/values.yaml#L119
+              puma:
+                disableWorkerKiller: false
+                workerMaxMemory: 2048
+            sidekiq:
+              minReplicas: 1
+              resources:
+                limits:
+                  memory: 3G
+                requests:
+                  cpu: 900m
+                  memory: 1G
+            gitlab-shell:
+              minReplicas: 1
+            toolbox:
+              enabled: true
+          # https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/doc/backup-restore/backup.md#cron-based-backup
+              backups:
+                objectStorage:
+                  config:
+                    secret: s3cmd-config
+                    key: config
+                cron:
+                  enabled: true
+                  schedule: "@daily"
+
+          registry:
+            enabled: true
+            storage:
+              secret: registry-storage
+              key: config
+              redirect:
+                disable: true
+            redis:
+              cache:
+                # address defined in global.redis
+                enabled: false
+                db: 1
+                dialtimeout: 100ms
+                readtimeout: 100ms
+                writetimeout: 100ms
+                pool:
+                  size: 10
+                  maxlifetime: 1h
+                  idletimeout: 300s
+            database:
+              enabled: false
+              user: postgres
+              password:
+                secret: gitlab-postgresql-password
+                key: postgresql-password
+              name: registry
+              preparedstatements: true
+              connecttimeout: 5s
+              draintimeout: 2m
+              pool:
+                maxidle: 25
+                maxopen: 25
+                maxlifetime: 5m
+                maxidletime: 5m
+            ingress:
+              tls:
+                secretName: gitlab-registry-tls
+            metrics:
+              enabled: true
+              serviceMonitor:
+                enabled: false # because they're labeled with `release=gitlab` which is conflicting with our `release=kube-prometheus-stack`
+            hpa:
+              minReplicas: 1
+            debug:
+              # DEPRECATED in favor of `metrics`
+              prometheus:
+                enabled: true
+
+          certmanager-issuer:
+            email: sre@example.com
+
+          certmanager:
+            install: false
+
+          kas:
+            metrics:
+              enabled: true
