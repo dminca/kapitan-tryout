@@ -9,6 +9,5 @@ parameters:
       helm_values:
         global:
           hosts:
-            domain: ${fqdn}
             gitlab:
               name: gitlab.${fqdn}
