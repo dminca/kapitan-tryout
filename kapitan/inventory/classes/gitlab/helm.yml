@@ -9,6 +9,11 @@ parameters:
         source: https://charts.gitlab.io
         version: ${charts:gitlab:version}
         chart_name: ${charts:gitlab:name}
+      - type: helm
+        output_path: ${charts:minio:chart_path}
+        source: https://charts.bitnami.com/bitnami
+        version: ${charts:minio:version}
+        chart_name: ${charts:minio:name}
     compile:
       - input_type: helm
         output_path: ${charts:gitlab:name}
@@ -18,3 +23,11 @@ parameters:
         helm_params:
           namespace: ${charts:gitlab:namespace}
           name: ${charts:gitlab:name}
+      - input_type: helm
+        output_path: ${charts:minio:name}
+        input_paths:
+          - ${charts:minio:chart_path}
+        helm_values: ${charts:minio:helm_values}
+        helm_params:
+          namespace: ${charts:minio:namespace}
+          name: ${charts:minio:name}

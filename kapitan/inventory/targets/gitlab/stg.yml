@@ -3,7 +3,9 @@ classes:
   - gitlab.helm
 
 parameters:
-  fqdn: stg.${domain}
   charts:
     gitlab:
-      instance_name: gitlab.${fqdn}
+      fqdn: stg.myvpc.${domain}
+      instance_name: ${charts:gitlab:name}.${charts:gitlab:fqdn}
+    minio:
+      fqdn: console.stg.myvpc

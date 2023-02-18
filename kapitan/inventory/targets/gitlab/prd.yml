@@ -3,4 +3,8 @@ classes:
   - gitlab.helm
 
 parameters:
-  fqdn: gitlab.${domain}
+  charts:
+    gitlab:
+      fqdn: ${charts:gitlab:name}.${domain}
+    minio:
+      fqdn: console.myvpc
