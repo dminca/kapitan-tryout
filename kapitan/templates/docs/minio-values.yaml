@@ -1,0 +1,4 @@
+{% set p = inventory.parameters %}
+# {{ p.target_name | upper }}
+---
+{{ p.charts.minio.helm_values | yaml }}
