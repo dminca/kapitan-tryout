@@ -5,6 +5,7 @@ parameters:
       name: gitlab
       namespace: gitlab-server
       version: 6.8.3
+      repo: https://charts.gitlab.io
       chart_path: charts/gitlab/${charts:gitlab:version}
       instance_name: ${charts:gitlab:fqdn}
       helm_values:
