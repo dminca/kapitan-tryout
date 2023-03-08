@@ -341,14 +341,27 @@ charts:
 docs:
 - templates/docs/my_readme.md
 domain: in.example.com
+generators:
+  manifest:
+    default_config:
+      annotations:
+        manifests.kapicorp.com/generated: 'true'
+      service_account:
+        create: false
+      type: job
 kapitan:
   compile:
   - input_params:
-      compile_path: /tmp/tmp5hiuqcye.kapitan/compiled/prd/.
+      compile_path: /tmp/tmppj5qbj1b.kapitan/compiled/prd/.
     input_paths:
     - templates/docs/my_readme.md
     input_type: jinja2
     output_path: .
+  - input_paths:
+    - components/kubernetes
+    input_type: kadet
+    output_path: manifests
+    output_type: yml
   - helm_params:
       name: gitlab
       namespace: gitlab-server

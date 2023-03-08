@@ -1,5 +1,7 @@
 parameters:
   target_name: ${_reclass_:name:short}
+  docs:
+    - templates/docs/my_readme.md
   kapitan:
     vars:
       target: ${target_name}
@@ -7,5 +9,16 @@ parameters:
       - output_path: .
         input_type: jinja2
         input_paths: ${docs}
-  docs:
-    - templates/docs/my_readme.md
+      - output_path: manifests
+        input_type: kadet
+        output_type: yml
+        input_paths:
+          - components/kubernetes
+  generators:
+    manifest:
+      default_config:
+        type: job
+        service_account:
+          create: false
+        annotations:
+          "manifests.kapicorp.com/generated": "true"

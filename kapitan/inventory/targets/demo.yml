@@ -1,0 +1,42 @@
+classes:
+- common
+
+parameters:
+  namespace: gitlab-postgres
+  components:
+    dbclean:
+      image: example.com/postgres:14.5-alpine
+      config_maps:
+        dbscript:
+          mount: /tmp/script.sql
+          subPath: script.sql
+          default_mode: 0550
+          versioned: true
+          data:
+            script.sql:
+              value: |
+                -- drops all connections to the Database, to avoid this
+                      -- ERROR:  database "gitlabhq_production" is being accessed by other users
+                      -- DETAIL:  There are 8 other sessions using the database.
+                -- block connections
+                REVOKE CONNECT ON DATABASE gitlabhq_production FROM public;
+
+                -- terminate existing connections
+                SELECT
+                      pg_terminate_backend(pg_stat_activity.pid)
+                FROM
+                      pg_stat_activity
+                WHERE
+                      pg_stat_activity.datname = 'gitlabhq_production'
+                AND
+                      -- except the current one
+                      pid <> pg_backend_pid();
+
+                -- drop the Database
+                DROP DATABASE gitlabhq_production;
+
+                -- re-create the Database
+                CREATE DATABASE gitlabhq_production OWNER postgres;
+
+                -- unblock connections
+                GRANT CONNECT ON DATABASE gitlabhq_production TO public;

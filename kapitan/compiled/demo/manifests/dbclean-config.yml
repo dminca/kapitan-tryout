@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  script.sql: "-- drops all connections to the Database, to avoid this\n      -- ERROR:\
+    \  database \"gitlabhq_production\" is being accessed by other users\n      --\
+    \ DETAIL:  There are 8 other sessions using the database.\n-- block connections\n\
+    REVOKE CONNECT ON DATABASE gitlabhq_production FROM public;\n\n-- terminate existing\
+    \ connections\nSELECT\n      pg_terminate_backend(pg_stat_activity.pid)\nFROM\n\
+    \      pg_stat_activity\nWHERE\n      pg_stat_activity.datname = 'gitlabhq_production'\n\
+    AND\n      -- except the current one\n      pid <> pg_backend_pid();\n\n-- drop\
+    \ the Database\nDROP DATABASE gitlabhq_production;\n\n-- re-create the Database\n\
+    CREATE DATABASE gitlabhq_production OWNER postgres;\n\n-- unblock connections\n\
+    GRANT CONNECT ON DATABASE gitlabhq_production TO public;\n"
+kind: ConfigMap
+metadata:
+  labels:
+    name: dbclean
+  name: dbclean-4468eec4
+  namespace: gitlab-postgres
