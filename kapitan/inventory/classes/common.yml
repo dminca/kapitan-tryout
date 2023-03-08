@@ -8,4 +8,4 @@ parameters:
         input_type: jinja2
         input_paths: ${docs}
   docs:
-    - templates/docs/README.md
+    - templates/docs/my_readme.md
