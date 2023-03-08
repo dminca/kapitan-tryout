@@ -751,8 +751,8 @@ class Container(BaseObj):
         if container.lifecycle:
             self.root.lifecycle = container.lifecycle
         self.root.resources = container.resources
-        self.root.args = container.args
-        self.root.command = container.command
+        self.root.args = list(container.args)
+        self.root.command = list(container.command)
         # legacy container.security
         if container.security:
             self.root.securityContext.allowPrivilegeEscalation = (
@@ -809,11 +809,13 @@ class Workload(WorkloadCommon):
         )
         workload.add_labels(component.setdefault("labels", {}))
         workload.add_volumes(component.setdefault("volumes", {}))
-        workload.add_volume_claims(component.setdefault("volume_claims", {}))
         workload.root.spec.template.spec.securityContext = (
             component.workload_security_context
         )
-        workload.root.spec.minReadySeconds = component.min_ready_seconds
+        if component.type != "job":
+            workload.root.spec.minReadySeconds = component.min_ready_seconds
+            workload.add_volume_claims(component.setdefault("volume_claims", {}))
+
         if component.service_account.enabled:
             workload.root.spec.template.spec.serviceAccountName = (
                 component.service_account.get("name", name)
